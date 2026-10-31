@@ -1,0 +1,25 @@
+2026-10-31T17:52:20  === task=medium_1000_SimpleAllocator module=SimpleAllocator model=deepseek-v4-pro-0813:free max_iter=10 ===
+2026-10-31T17:52:20  --- iteration 1: sending prompt (1748 chars)
+2026-10-31T17:53:43  response received in 82.4s, 2676 chars, usage={'completion_tokens': 7911, 'completion_tokens_details': {'accepted_prediction_tokens': 5242, 'reasoning_tokens': 7128, 'rejected_prediction_tokens': 2762}, 'prompt_tokens': 902, 'prompt_tokens_details': {'cached_tokens': 512}, 'total_tokens': 8813}
+2026-10-31T17:53:43  SANY FAIL (rc=4294967295, 0.2s)
+2026-10-31T17:53:43  SANY error type: синтаксис
+2026-10-31T17:53:43  --- iteration 2: sending prompt (3452 chars)
+2026-10-31T17:54:06  response received in 23.1s, 2676 chars, usage={'completion_tokens': 2104, 'completion_tokens_details': {'accepted_prediction_tokens': 1469, 'reasoning_tokens': 1322, 'rejected_prediction_tokens': 436}, 'prompt_tokens': 2672, 'prompt_tokens_details': {'cached_tokens': 768}, 'total_tokens': 4776}
+2026-10-31T17:54:07  SANY ok (rc=0, 0.3s)
+2026-10-31T17:54:08  TLC FAIL (rc=13, 1.2s) stats={'states_generated': 537, 'distinct_states': 400, 'depth': None}
+2026-10-31T17:54:08  TLC error type: нарушение temporal-свойства
+2026-10-31T17:54:08  --- iteration 3: sending prompt (6081 chars)
+2026-10-31T17:55:28  response received in 80.0s, 2635 chars, usage={'completion_tokens': 7725, 'completion_tokens_details': {'accepted_prediction_tokens': 5124, 'reasoning_tokens': 6959, 'rejected_prediction_tokens': 2679}, 'prompt_tokens': 5356, 'prompt_tokens_details': {'cached_tokens': 2560}, 'total_tokens': 13081}
+2026-10-31T17:55:28  SANY ok (rc=0, 0.3s)
+2026-10-31T17:55:29  TLC FAIL (rc=13, 1.2s) stats={'states_generated': 537, 'distinct_states': 400, 'depth': None}
+2026-10-31T17:55:29  TLC error type: нарушение temporal-свойства
+2026-10-31T17:55:29  --- iteration 4: sending prompt (7149 chars)
+2026-10-31T17:57:53  response received in 143.9s, 2657 chars, usage={'completion_tokens': 13147, 'completion_tokens_details': {'accepted_prediction_tokens': 8895, 'reasoning_tokens': 12373, 'rejected_prediction_tokens': 3858}, 'prompt_tokens': 5562, 'prompt_tokens_details': {}, 'total_tokens': 18709}
+2026-10-31T17:57:53  SANY ok (rc=0, 0.3s)
+2026-10-31T17:57:55  TLC FAIL (rc=13, 1.3s) stats={'states_generated': 537, 'distinct_states': 400, 'depth': None}
+2026-10-31T17:57:55  TLC error type: нарушение temporal-свойства
+2026-10-31T17:57:55  --- iteration 5: sending prompt (7345 chars)
+2026-10-31T17:59:20  response received in 85.5s, 2783 chars, usage={'completion_tokens': 7606, 'completion_tokens_details': {'accepted_prediction_tokens': 5027, 'reasoning_tokens': 6792, 'rejected_prediction_tokens': 2707}, 'prompt_tokens': 6101, 'prompt_tokens_details': {'cached_tokens': 512}, 'total_tokens': 13707}
+2026-10-31T17:59:21  SANY ok (rc=0, 0.3s)
+2026-10-31T17:59:22  TLC ok (rc=0, 1.2s) stats={'states_generated': 94, 'distinct_states': 43, 'depth': 5}
+2026-10-31T17:59:22  === done: status=passed sany_pass_iter=2 tlc_pass_iter=5 total=5 ===

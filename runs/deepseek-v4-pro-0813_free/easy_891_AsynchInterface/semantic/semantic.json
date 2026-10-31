@@ -1,0 +1,43 @@
+{
+  "gold": {
+    "status": "pass",
+    "states_generated": 30,
+    "distinct_states": 12,
+    "depth": 2
+  },
+  "generated": {
+    "status": "pass",
+    "states_generated": 27,
+    "distinct_states": 12,
+    "depth": 4
+  },
+  "checks": [
+    {
+      "status": "pass",
+      "states_generated": 27,
+      "distinct_states": 12,
+      "depth": 4,
+      "check": "refinement: generated => Gold",
+      "name": "GoldSpec",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 27,
+      "distinct_states": 12,
+      "depth": 4,
+      "check": "invariant Gold!TypeInvariant on generated behaviors",
+      "name": "Gold_TypeInvariant",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "fail: Error: Property line 5, col 9 to line 5, col 19 of module AsynchInterface is violated by the initial state:",
+      "states_generated": null,
+      "distinct_states": null,
+      "depth": null,
+      "check": "reverse refinement: Gold => generated",
+      "name": "GenSpec",
+      "module": "CompareRev"
+    }
+  ]
+}

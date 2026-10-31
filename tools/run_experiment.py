@@ -187,10 +187,12 @@ def tlc_ok(log):
 
 
 def tlc_stats(log):
-    gen = re.search(r"(\d+) states generated, (\d+) distinct states found", log)
+    # берём последнюю строку статистики: в промежуточных «Progress» числа форматируются с разделителем тысяч
+    gens = re.findall(r"(\d+) states generated, (\d+) distinct states found", log)
     depth = re.search(r"depth of the complete state graph search is (\d+)", log)
-    return {"states_generated": int(gen.group(1)) if gen else None,
-            "distinct_states": int(gen.group(2)) if gen else None,
+    gen = gens[-1] if gens else None
+    return {"states_generated": int(gen[0]) if gen else None,
+            "distinct_states": int(gen[1]) if gen else None,
             "depth": int(depth.group(1)) if depth else None}
 
 

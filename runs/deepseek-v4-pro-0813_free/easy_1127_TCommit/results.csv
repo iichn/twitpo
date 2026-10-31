@@ -1,0 +1,3 @@
+n,sany,tlc,type,what
+1,ok,fail,ошибка вычисления,"`Init` записан как предикат `\A rm: rmState[rm]=""working""`, а не присваивание `rmState = [...]`, TLC не может вычислить `rmState`"
+2,ok,ok,–,–

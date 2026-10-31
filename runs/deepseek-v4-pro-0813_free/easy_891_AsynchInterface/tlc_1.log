@@ -1,0 +1,18 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 89 and seed 555873850029447134 with 16 workers on 16 cores with 3938MB heap and 64MB offheap memory [pid: 20824] (Windows 10 10.0 amd64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file E:\Политех мага\ai project\testing_verification\runs\deepseek-v4-pro-0813_free\easy_891_AsynchInterface\work\AsynchInterface.tla
+Semantic processing of module AsynchInterface
+Starting... (2026-10-31 17:45:02)
+Computing initial states...
+Computed 2 initial states...
+Finished computing initial states: 3 distinct states generated at 2026-10-31 17:45:02.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 9.8E-18
+27 states generated, 12 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 4.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 3 and the 95th percentile is 3).
+Finished in 00s at (2026-10-31 17:45:02)

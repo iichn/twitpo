@@ -74,6 +74,20 @@ python tools/run_experiment.py --all                                # все 4 �
 
 ## Для отчёта
 - Метрики берутся из `results.md` / `summary.json`.
-- Для п. 4 (семантика) в `summary.json` есть `final_tlc` — числа для сравнения с Gold
-  (Gold: AsynchInterface 12 / 30 / 2, TCommit 34 / 94 / 7, SimpleAllocator 400 / 1633 / 6, SyncTerminationDetection 129 / 3722 / 1
-  в формате distinct / generated / depth).
+- Числа состояний для сравнения с Gold (п. 4) берите из `semantic/semantic.json` (см. ниже), а не из `summary.json`:
+  там TLC запускается с `-workers 1`, поэтому `depth` детерминирован (при `-workers auto` глубина может отличаться от запуска к запуску).
+
+## Семантическая проверка (п. 4): `python tools/compare_gold.py`
+Запускается **после** генерации (Gold модели не показывается). Для каждой задачи в `runs/<модель>/<задача>/semantic/`:
+1. Состояния: TLC (`-workers 1`) на Gold и на финальной сгенерированной спецификации: distinct / generated / depth.
+2. Refinement «сгенерированная ⇒ Gold»: Gold копируется как `SpecGold.tla`, в обёртке
+   `Gold == INSTANCE SpecGold WITH <gold_x> <- <my_x>, ...`, `GoldSpec == Gold!Spec`, в `.cfg` `PROPERTY GoldSpec`.
+3. Инварианты и свойства Gold (`Gold!TypeInvariant`, ...) на поведениях сгенерированной спецификации.
+4. Обратный refinement «Gold ⇒ сгенерированная»: что из поведения Gold модель потеряла.
+
+Подстановки переменных (`gold_x <- my_x`) подбираются вручную по финальным спецификациям и лежат в `tools/semantic/<задача>.json`
+(`forward_subst`, `reverse_subst`, `forward_extra`). Если запускаете другую модель или получили другие имена переменных, их нужно поправить.
+Результаты: `semantic.md`, `semantic.json`, логи в `logs/`, обёртки `CompareFwd.tla`, `CompareRev.tla` и их `.cfg`.
+
+Gold для справки (distinct / generated / depth): AsynchInterface 12 / 30 / 2, TCommit 34 / 94 / 7,
+SimpleAllocator 400 / 1633 / 6, SyncTerminationDetection 129 / 3722 / 1.

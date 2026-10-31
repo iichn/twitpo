@@ -1,0 +1,21 @@
+{
+  "gen_spec": "Spec",
+  "gold_spec": "Spec",
+  "forward_subst": {
+    "N": "N",
+    "active": "[n \\in 0..N-1 |-> active[n + 1]]",
+    "terminationDetected": "detected"
+  },
+  "reverse_subst": {
+    "N": "N",
+    "active": "[i \\in 1..N |-> active[i - 1]]",
+    "detected": "terminationDetected",
+    "tick": "FALSE"
+  },
+  "forward_extra": [
+    {"kind": "INVARIANT", "gold_name": "TypeOK"},
+    {"kind": "INVARIANT", "gold_name": "TDCorrect"},
+    {"kind": "PROPERTY", "gold_name": "Quiescence"},
+    {"kind": "PROPERTY", "gold_name": "Liveness"}
+  ]
+}
