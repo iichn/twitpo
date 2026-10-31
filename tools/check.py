@@ -32,29 +32,32 @@ def run(cls, args, cwd):
         return -1, "TIMEOUT"
 
 
-def main():
-    if len(sys.argv) != 4:
-        sys.exit(__doc__)
-    task, answer, it = Path(sys.argv[1]), Path(sys.argv[2]), int(sys.argv[3])
-    text = answer.read_text(encoding="utf8")
-    m = re.search(r"-+\s*MODULE\s+(\w+)", text)
-    if not m:
-        sys.exit("В файле нет заголовка '---- MODULE Имя ----'")
-    mod = m.group(1)
-
-    cfgs = [c for c in task.glob("*.cfg")]
-    if len(cfgs) != 1:
-        sys.exit("В папке задачи должен быть ровно один .cfg")
-
+def check(task, text, it):
+    """Stage one iteration, run SANY then TLC, return a result dict."""
+    task = Path(task)
     out = task / "iterations" / f"iter{it:02d}"
     out.mkdir(parents=True, exist_ok=True)
+    m = re.search(r"-+\s*MODULE\s+(\w+)", text)
+    if not m:
+        msg = "SANY not run: no '---- MODULE Name ----' header found in the answer."
+        (out / "answer.txt").write_text(text, encoding="utf8")
+        (out / "sany.log").write_text(msg, encoding="utf8")
+        res = {"iteration": it, "module": None, "sany_ok": False, "dir": str(out)}
+        (out / "result.json").write_text(json.dumps(res, indent=2), encoding="utf8")
+        return res
+    mod = m.group(1)
+
+    cfgs = list(task.glob("*.cfg"))
+    if len(cfgs) != 1:
+        sys.exit("The task folder must contain exactly one .cfg")
+
     (out / f"{mod}.tla").write_text(text, encoding="utf8")
     shutil.copy(cfgs[0], out / f"{mod}.cfg")
 
     _, sany = run("tla2sany.SANY", [f"{mod}.tla"], out)
     (out / "sany.log").write_text(sany, encoding="utf8")
     sany_ok = "Error" not in sany and "error" not in sany.lower().replace("0 errors", "")
-    res = {"iteration": it, "module": mod, "sany_ok": sany_ok}
+    res = {"iteration": it, "module": mod, "sany_ok": sany_ok, "dir": str(out)}
 
     if sany_ok:
         _, tlc = run("tlc2.TLC", ["-workers", "4", f"{mod}.tla"], out)
@@ -70,10 +73,17 @@ def main():
         )
         if not ok:
             res["tlc_first_error"] = next(
-                (l for l in tlc.splitlines() if l.startswith("Error:")), "см. tlc.log")
+                (l for l in tlc.splitlines() if l.startswith("Error:")), "see tlc.log")
     (out / "result.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf8")
+    return res
+
+
+def main():
+    if len(sys.argv) != 4:
+        sys.exit(__doc__)
+    task, answer, it = Path(sys.argv[1]), Path(sys.argv[2]), int(sys.argv[3])
+    res = check(task, answer.read_text(encoding="utf8"), it)
     print(json.dumps(res, ensure_ascii=False, indent=2))
-    print(f"Logs: {out}")
 
 
 if __name__ == "__main__":
