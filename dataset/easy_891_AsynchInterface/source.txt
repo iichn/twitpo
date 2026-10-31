@@ -1,0 +1,6 @@
+spec_id=891
+complexity=basic
+tla: https://github.com/LUC-AI4FM/tla_benchmark/tree/dataset-release/dataset_release/specs/gold/891_AsynchInterface.tla
+cfg: https://github.com/LUC-AI4FM/tla_benchmark/tree/dataset-release/dataset_release/specs/gold/891_AsynchInterface.cfg
+manifest: https://github.com/LUC-AI4FM/tla_benchmark/tree/dataset-release/dataset_release/manifest.jsonl
+origin: https://github.com/tlaplus/Examples / data/tla_files/tlaplus/Examples/specifications/SpecifyingSystems/AsynchronousInterface/AsynchInterface.tla
