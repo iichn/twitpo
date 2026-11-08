@@ -1,0 +1,28 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 68 and seed 906448292940179718 with 16 workers on 16 cores with 3938MB heap and 64MB offheap memory [pid: 15116] (Windows 10 10.0 amd64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file E:\Политех мага\ai project\testing_verification\runs\deepseek-v4-pro-0813_free\medium_1067_SyncTerminationDetection\semantic\work\cmp\CompareRev.tla
+Parsing file E:\Политех мага\ai project\testing_verification\runs\deepseek-v4-pro-0813_free\medium_1067_SyncTerminationDetection\semantic\work\cmp\SpecGold.tla
+Parsing file C:\Users\Владимир\AppData\Local\Temp\Naturals.tla
+Parsing file E:\Политех мага\ai project\testing_verification\runs\deepseek-v4-pro-0813_free\medium_1067_SyncTerminationDetection\semantic\work\cmp\SyncTerminationDetection.tla
+Parsing file C:\Users\Владимир\AppData\Local\Temp\Integers.tla
+Semantic processing of module Naturals
+Semantic processing of module SpecGold
+Semantic processing of module Integers
+Semantic processing of module SyncTerminationDetection
+Semantic processing of module CompareRev
+Starting... (2026-10-31 18:10:26)
+Implied-temporal checking--satisfiability problem has 1 branches.
+Computing initial states...
+Error: Property line 16, col 8 to line 16, col 23 of module SyncTerminationDetection is violated by the initial state:
+/\ active = ( 0 :> FALSE @@
+  1 :> FALSE @@
+  2 :> FALSE @@
+  3 :> FALSE @@
+  4 :> FALSE @@
+  5 :> FALSE @@
+  6 :> FALSE )
+/\ terminationDetected = TRUE
+
+Finished in 00s at (2026-10-31 18:10:26)

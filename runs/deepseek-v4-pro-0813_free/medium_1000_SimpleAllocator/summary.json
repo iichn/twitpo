@@ -1,0 +1,18 @@
+{
+  "task": "medium_1000_SimpleAllocator",
+  "module": "SimpleAllocator",
+  "model_requested": "deepseek-v4-pro-0813:free",
+  "base_url": "https://api.literouter.com/v1",
+  "started": "2026-10-31T17:52:20",
+  "sany_pass_iter": 2,
+  "tlc_pass_iter": 5,
+  "total_iterations": 5,
+  "status": "passed",
+  "final_tlc": {
+    "states_generated": 94,
+    "distinct_states": 43,
+    "depth": 5
+  },
+  "model_returned": null,
+  "finished": "2026-10-31T17:59:22"
+}

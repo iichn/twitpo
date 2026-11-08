@@ -1,0 +1,52 @@
+{
+  "gold": {
+    "status": "pass",
+    "states_generated": 94,
+    "distinct_states": 34,
+    "depth": 7
+  },
+  "generated": {
+    "status": "pass",
+    "states_generated": 97,
+    "distinct_states": 46,
+    "depth": 7
+  },
+  "checks": [
+    {
+      "status": "fail: Error: Action property line 46, col 21 to line 46, col 38 of module SpecGold is violated.",
+      "states_generated": 38,
+      "distinct_states": 28,
+      "depth": 7,
+      "check": "refinement: generated => Gold",
+      "name": "GoldSpec",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 97,
+      "distinct_states": 46,
+      "depth": 7,
+      "check": "invariant Gold!TCTypeOK on generated behaviors",
+      "name": "Gold_TCTypeOK",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 97,
+      "distinct_states": 46,
+      "depth": 7,
+      "check": "invariant Gold!TCConsistent on generated behaviors",
+      "name": "Gold_TCConsistent",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "fail: Error: Action property line 26, col 19 to line 26, col 34 of module TCommit is violated.",
+      "states_generated": 36,
+      "distinct_states": 22,
+      "depth": 7,
+      "check": "reverse refinement: Gold => generated",
+      "name": "GenSpec",
+      "module": "CompareRev"
+    }
+  ]
+}

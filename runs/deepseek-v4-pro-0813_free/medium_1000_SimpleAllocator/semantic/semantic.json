@@ -1,0 +1,79 @@
+{
+  "gold": {
+    "status": "pass",
+    "states_generated": 1633,
+    "distinct_states": 400,
+    "depth": 6
+  },
+  "generated": {
+    "status": "pass",
+    "states_generated": 94,
+    "distinct_states": 43,
+    "depth": 5
+  },
+  "checks": [
+    {
+      "status": "fail: Error: Action property line 72, col 14 to line 72, col 26 of module SpecGold is violated.",
+      "states_generated": 94,
+      "distinct_states": 43,
+      "depth": 7,
+      "check": "refinement: generated => Gold",
+      "name": "GoldSpec",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 94,
+      "distinct_states": 43,
+      "depth": 7,
+      "check": "invariant Gold!TypeInvariant on generated behaviors",
+      "name": "Gold_TypeInvariant",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 94,
+      "distinct_states": 43,
+      "depth": 7,
+      "check": "invariant Gold!ResourceMutex on generated behaviors",
+      "name": "Gold_ResourceMutex",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 94,
+      "distinct_states": 43,
+      "depth": 5,
+      "check": "property Gold!ClientsWillReturn on generated behaviors",
+      "name": "Gold_ClientsWillReturn",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "fail: Error: Temporal properties were violated.",
+      "states_generated": 94,
+      "distinct_states": 43,
+      "depth": null,
+      "check": "property Gold!ClientsWillObtain on generated behaviors",
+      "name": "Gold_ClientsWillObtain",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 94,
+      "distinct_states": 43,
+      "depth": 5,
+      "check": "property Gold!InfOftenSatisfied on generated behaviors",
+      "name": "Gold_InfOftenSatisfied",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "fail: Error: Action property line 41, col 8 to line 41, col 20 of module SimpleAllocator is violated.",
+      "states_generated": 24,
+      "distinct_states": 21,
+      "depth": 4,
+      "check": "reverse refinement: Gold => generated",
+      "name": "GenSpec",
+      "module": "CompareRev"
+    }
+  ]
+}

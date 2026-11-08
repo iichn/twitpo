@@ -1,0 +1,15 @@
+2026-10-31T18:00:23  === task=medium_1067_SyncTerminationDetection module=SyncTerminationDetection model=deepseek-v4-pro-0813:free max_iter=10 ===
+2026-10-31T18:00:23  --- iteration 1: sending prompt (1476 chars)
+2026-10-31T18:01:30  response received in 67.2s, 1044 chars, usage={'completion_tokens': 5103, 'completion_tokens_details': {'accepted_prediction_tokens': 3353, 'reasoning_tokens': 4752, 'rejected_prediction_tokens': 1897}, 'prompt_tokens': 845, 'prompt_tokens_details': {}, 'total_tokens': 5948}
+2026-10-31T18:01:31  SANY FAIL (rc=0, 0.3s)
+2026-10-31T18:01:31  SANY error type: неопределённое имя
+2026-10-31T18:01:31  --- iteration 2: sending prompt (2364 chars)
+2026-10-31T18:01:44  response received in 13.3s, 1096 chars, usage={'completion_tokens': 1105, 'completion_tokens_details': {'accepted_prediction_tokens': 764, 'reasoning_tokens': 750, 'rejected_prediction_tokens': 259}, 'prompt_tokens': 1895, 'prompt_tokens_details': {'cached_tokens': 768}, 'total_tokens': 3000}
+2026-10-31T18:01:44  SANY ok (rc=0, 0.3s)
+2026-10-31T18:01:45  TLC FAIL (rc=11, 0.9s) stats={'states_generated': 801, 'distinct_states': 129, 'depth': 2}
+2026-10-31T18:01:45  TLC error type: deadlock
+2026-10-31T18:01:45  --- iteration 3: sending prompt (3416 chars)
+2026-10-31T18:02:49  response received in 63.6s, 1300 chars, usage={'completion_tokens': 5300, 'completion_tokens_details': {'accepted_prediction_tokens': 3445, 'reasoning_tokens': 4876, 'rejected_prediction_tokens': 2120}, 'prompt_tokens': 3241, 'prompt_tokens_details': {'cached_tokens': 1792}, 'total_tokens': 8541}
+2026-10-31T18:02:49  SANY ok (rc=0, 0.3s)
+2026-10-31T18:02:50  TLC ok (rc=0, 0.9s) stats={'states_generated': 860, 'distinct_states': 258, 'depth': 2}
+2026-10-31T18:02:50  === done: status=passed sany_pass_iter=2 tlc_pass_iter=3 total=3 ===

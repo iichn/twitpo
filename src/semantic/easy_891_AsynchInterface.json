@@ -1,0 +1,19 @@
+{
+  "gen_spec": "Spec",
+  "gold_spec": "Spec",
+  "forward_subst": {
+    "Data": "Data",
+    "val": "val",
+    "rdy": "IF rdy THEN 1 ELSE 0",
+    "ack": "IF ack THEN 1 ELSE 0"
+  },
+  "reverse_subst": {
+    "Data": "Data",
+    "val": "val",
+    "rdy": "(rdy = 1)",
+    "ack": "(ack = 1)"
+  },
+  "forward_extra": [
+    {"kind": "INVARIANT", "gold_name": "TypeInvariant"}
+  ]
+}

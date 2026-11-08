@@ -1,0 +1,11 @@
+2026-10-31T17:50:57  === task=easy_1127_TCommit module=TCommit model=deepseek-v4-pro-0813:free max_iter=10 ===
+2026-10-31T17:50:57  --- iteration 1: sending prompt (1630 chars)
+2026-10-31T17:51:24  response received in 27.1s, 1544 chars, usage={'completion_tokens': 2844, 'completion_tokens_details': {'accepted_prediction_tokens': 1927, 'reasoning_tokens': 2392, 'rejected_prediction_tokens': 824}, 'prompt_tokens': 884, 'prompt_tokens_details': {'cached_tokens': 512}, 'total_tokens': 3728}
+2026-10-31T17:51:24  SANY ok (rc=0, 0.2s)
+2026-10-31T17:51:25  TLC FAIL (rc=75, 0.9s) stats={'states_generated': 0, 'distinct_states': 0, 'depth': None}
+2026-10-31T17:51:25  TLC error type: ошибка вычисления
+2026-10-31T17:51:25  --- iteration 2: sending prompt (2531 chars)
+2026-10-31T17:51:39  response received in 13.5s, 889 chars, usage={'completion_tokens': 1201, 'completion_tokens_details': {'accepted_prediction_tokens': 820, 'reasoning_tokens': 885, 'rejected_prediction_tokens': 323}, 'prompt_tokens': 2138, 'prompt_tokens_details': {'cached_tokens': 512}, 'total_tokens': 3339}
+2026-10-31T17:51:39  SANY ok (rc=0, 0.3s)
+2026-10-31T17:51:40  TLC ok (rc=0, 0.9s) stats={'states_generated': 97, 'distinct_states': 46, 'depth': 7}
+2026-10-31T17:51:40  === done: status=passed sany_pass_iter=1 tlc_pass_iter=2 total=2 ===

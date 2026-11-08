@@ -1,0 +1,23 @@
+{
+  "gen_spec": "SimpleAllocator",
+  "gold_spec": "SimpleAllocator",
+  "forward_subst": {
+    "Clients": "Clients",
+    "Resources": "Resources",
+    "unsat": "requested",
+    "alloc": "allocated"
+  },
+  "reverse_subst": {
+    "Clients": "Clients",
+    "Resources": "Resources",
+    "requested": "unsat",
+    "allocated": "alloc"
+  },
+  "forward_extra": [
+    {"kind": "INVARIANT", "gold_name": "TypeInvariant"},
+    {"kind": "INVARIANT", "gold_name": "ResourceMutex"},
+    {"kind": "PROPERTY", "gold_name": "ClientsWillReturn"},
+    {"kind": "PROPERTY", "gold_name": "ClientsWillObtain"},
+    {"kind": "PROPERTY", "gold_name": "InfOftenSatisfied"}
+  ]
+}

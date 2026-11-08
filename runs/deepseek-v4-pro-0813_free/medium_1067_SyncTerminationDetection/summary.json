@@ -1,0 +1,18 @@
+{
+  "task": "medium_1067_SyncTerminationDetection",
+  "module": "SyncTerminationDetection",
+  "model_requested": "deepseek-v4-pro-0813:free",
+  "base_url": "https://api.literouter.com/v1",
+  "started": "2026-10-31T18:00:23",
+  "sany_pass_iter": 2,
+  "tlc_pass_iter": 3,
+  "total_iterations": 3,
+  "status": "passed",
+  "final_tlc": {
+    "states_generated": 1860,
+    "distinct_states": 258,
+    "depth": 2
+  },
+  "model_returned": null,
+  "finished": "2026-10-31T18:02:50"
+}

@@ -1,0 +1,22 @@
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file E:\Политех мага\ai project\testing_verification\runs\deepseek-v4-pro-0813_free\medium_1000_SimpleAllocator\work\SimpleAllocator.tla
+***Parse Error***
+Was expecting "==== or more Module body"
+Encountered "{" at line 25, column 27 and token "Union" 
+
+Residual stack trace follows:
+Module definition starting at line 1, column 1.
+
+
+Fatal errors while parsing TLA+ spec in file SimpleAllocator.tla
+
+tla2sany.semantic.AbortException
+*** Abort messages: 1
+
+In module SimpleAllocator
+
+Could not parse module SimpleAllocator from file SimpleAllocator.tla
+
+

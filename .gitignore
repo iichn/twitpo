@@ -1,0 +1,33 @@
+# Environment & Secrets
+.env
+.venv/
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# TLA+ & Java artifacts
+*.jar
+*.class
+tools/
+state/
+states/
+**/states/
+runs/**/work/
+runs/.backup/
+tools.zip
+
+# Reports & Drafts (keep only final PDF if needed, ignore Word drafts)
+report/
+*.docx
+~$*.docx
+
+# OS & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+_repo/

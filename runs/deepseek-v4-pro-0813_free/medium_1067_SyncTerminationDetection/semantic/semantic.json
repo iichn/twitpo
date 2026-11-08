@@ -1,0 +1,70 @@
+{
+  "gold": {
+    "status": "pass",
+    "states_generated": 3722,
+    "distinct_states": 129,
+    "depth": 1
+  },
+  "generated": {
+    "status": "pass",
+    "states_generated": 1860,
+    "distinct_states": 258,
+    "depth": 2
+  },
+  "checks": [
+    {
+      "status": "pass",
+      "states_generated": 1860,
+      "distinct_states": 258,
+      "depth": 2,
+      "check": "refinement: generated => Gold",
+      "name": "GoldSpec",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 1860,
+      "distinct_states": 258,
+      "depth": 2,
+      "check": "invariant Gold!TypeOK on generated behaviors",
+      "name": "Gold_TypeOK",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 1860,
+      "distinct_states": 258,
+      "depth": 2,
+      "check": "invariant Gold!TDCorrect on generated behaviors",
+      "name": "Gold_TDCorrect",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 1860,
+      "distinct_states": 258,
+      "depth": 2,
+      "check": "property Gold!Quiescence on generated behaviors",
+      "name": "Gold_Quiescence",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "pass",
+      "states_generated": 1860,
+      "distinct_states": 258,
+      "depth": 2,
+      "check": "property Gold!Liveness on generated behaviors",
+      "name": "Gold_Liveness",
+      "module": "CompareFwd"
+    },
+    {
+      "status": "fail: Error: Property line 16, col 8 to line 16, col 23 of module SyncTerminationDetection is violated by the initial state:",
+      "states_generated": null,
+      "distinct_states": null,
+      "depth": null,
+      "check": "reverse refinement: Gold => generated",
+      "name": "GenSpec",
+      "module": "CompareRev"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "gen_spec": "TCSpec",
+  "gold_spec": "TCSpec",
+  "forward_subst": {"RM": "RM", "rmState": "rmState"},
+  "reverse_subst": {"RM": "RM", "rmState": "rmState"},
+  "forward_extra": [
+    {"kind": "INVARIANT", "gold_name": "TCTypeOK"},
+    {"kind": "INVARIANT", "gold_name": "TCConsistent"}
+  ]
+}
