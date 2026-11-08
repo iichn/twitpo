@@ -1,25 +1,26 @@
 """Автоматический эксперимент: LLM (через LiteRouter) -> SANY -> TLC -> лог обратно в LLM.
 
 Примеры:
-    python tools/run_experiment.py dataset/easy_891_AsynchInterface
-    python tools/run_experiment.py --all
-    python tools/run_experiment.py --all --model deepseek-v4-pro-0813:free --max-iter 10
+    python src/run_experiment.py dataset/easy_891_AsynchInterface
+    python src/run_experiment.py --all
+    python src/run_experiment.py --all --model deepseek-v4-pro-0813:free --max-iter 10
+
+ВНИМАНИЕ: модель deepseek-v4-pro-0813:free на LiteRouter больше недоступна, прогоны в runs/ повторить нельзя.
+Сохранённые ответы и логи являются первичными данными; для проверки без API: python src/verify_logs.py.
 
 Правила эксперимента (см. PROTOCOL.md):
   * модель видит только description.txt, .cfg и логи SANY/TLC; папка gold/ НЕ читается;
-  * шаблоны промптов лежат в tools/prompts/;
+  * шаблоны промптов лежат в src/prompts/;
   * всё логируется в runs/<модель>/<задача>/.
 
 Ключ API берётся из переменной окружения LITEROUTER_API_KEY или из файла .env
 (строка KEY=значение, либо просто ключ в первой непустой строке). .env не коммитится.
 """
 import argparse
-import csv
 import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 import time
 import urllib.error
@@ -27,7 +28,9 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from common import (ROOT, classify_sany, classify_tlc, find_jar, first_error_line, run_to_file,
+                    sany_ok, tlc_ok, tlc_stats, write_results)
+
 PROMPTS = Path(__file__).resolve().parent / "prompts"
 DEFAULT_MODEL = "deepseek-v4-pro-0813:free"
 DEFAULT_BASE_URL = "https://api.literouter.com/v1"
@@ -36,18 +39,13 @@ SANY_TIMEOUT = 120
 TIMEOUT_TAIL_LINES = 100
 API_RETRIES = 5
 
-if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+# Строки, которые попадают в промпт модели: не переводить, они зафиксированы в prompt_N.md прогонов
+MSG_NO_CODE_BLOCK = "SANY was not run: the response did not contain a ```tla code block."
+MSG_TLC_TIMEOUT = ("[NOTE: TLC was stopped by the {timeout} s timeout. The log is truncated: "
+                   "only the last {lines} lines are shown.]\n{tail}")
 
 
-# ---------------------------------------------------------------- utilities
-def find_jar():
-    for p in (ROOT / "tla2tools.jar", ROOT / "tools" / "tla2tools.jar"):
-        if p.exists():
-            return p
-    sys.exit("tla2tools.jar not found (put it in the repo root or tools/)")
-
-
+# ------------------------------------------------------------------- утилиты
 def load_api_key():
     key = os.environ.get("LITEROUTER_API_KEY")
     if key:
@@ -64,7 +62,7 @@ def load_api_key():
                     return v.strip().strip("'\"")
         if lines and "=" not in lines[0]:
             return lines[0]
-    sys.exit("API key not found: set LITEROUTER_API_KEY or create .env")
+    sys.exit("Не найден ключ API: задайте LITEROUTER_API_KEY или создайте файл .env")
 
 
 class Logger:
@@ -104,16 +102,16 @@ def chat(messages, model, base_url, key, temperature, log):
         except urllib.error.HTTPError as e:
             err = e.read().decode("utf8", "replace")[:500]
             retry = e.code in (408, 409, 425, 429) or e.code >= 500
-            log(f"API HTTP {e.code} (attempt {attempt}/{API_RETRIES}): {err}")
+            log(f"API HTTP {e.code} (попытка {attempt}/{API_RETRIES}): {err}")
             if not retry:
                 raise
         except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
-            log(f"API connection error (attempt {attempt}/{API_RETRIES}): {e}")
+            log(f"Ошибка соединения с API (попытка {attempt}/{API_RETRIES}): {e}")
         if attempt < API_RETRIES:
             delay = min(60, 5 * 2 ** (attempt - 1))
-            log(f"retrying in {delay}s")
+            log(f"повтор через {delay} с")
             time.sleep(delay)
-    raise RuntimeError("API failed after retries")
+    raise RuntimeError("API недоступен после всех повторов")
 
 
 def extract_spec(reply):
@@ -129,93 +127,14 @@ def extract_spec(reply):
     return (tla or [b for _, b in blocks])[-1]
 
 
-# ----------------------------------------------------------- SANY / TLC runs
-def run_to_file(cmd, cwd, out_path, timeout):
-    with open(out_path, "w", encoding="utf8", errors="replace") as f:
-        try:
-            p = subprocess.run(cmd, cwd=cwd, stdout=f, stderr=subprocess.STDOUT, timeout=timeout)
-            return p.returncode, False
-        except subprocess.TimeoutExpired:
-            return None, True
-
-
-SANY_ERR = re.compile(r"Fatal errors|Semantic errors|\*\*\* Errors:|Could not parse|"
-                      r"Abort messages|Parse Error|Lexical error", re.I)
-
-
-def sany_ok(log):
-    return not SANY_ERR.search(log)
-
-
-def classify_sany(log):
-    if re.search(r"does not match the name .* of the top level module", log):
-        return "имя модуля не совпало с файлом"
-    if re.search(r"Cannot find source file for module", log):
-        return "выдуманный оператор или модуль (модуль не найден)"
-    if re.search(r"Unknown operator|not defined|Could not resolve|undefined", log, re.I):
-        return "неопределённое имя"
-    if re.search(r"requires \d+ argument|number of arguments|wrong number", log, re.I):
-        return "неверное число аргументов"
-    if re.search(r"level", log, re.I) and re.search(r"error", log, re.I):
-        return "неверный уровень выражения"
-    if re.search(r"Fatal errors while parsing|Was expecting|Encountered|Parse Error|Lexical", log, re.I):
-        return "синтаксис"
-    return "прочее (SANY)"
-
-
-def classify_tlc(log, timed_out):
-    if timed_out:
-        return "timeout"
-    if "Deadlock reached" in log:
-        return "deadlock"
-    if re.search(r"Invariant .* is violated", log):
-        return "нарушение инварианта"
-    if re.search(r"Temporal properties were violated|Action property .* is violated|"
-                 r"Property .* is violated|Implied-temporal", log):
-        return "нарушение temporal-свойства"
-    if re.search(r"configuration file|not assigned a value|Unknown constant|"
-                 r"is not defined in the (spec|module)|specified in the configuration", log, re.I):
-        return "ошибка конфигурации"
-    if re.search(r"Error:|exception|Attempted to|evaluat|not completely specified|"
-                 r"is either undefined|domain", log, re.I):
-        return "ошибка вычисления"
-    return "прочее (TLC)"
-
-
-def tlc_ok(log):
-    return "Model checking completed. No error has been found." in log
-
-
-def tlc_stats(log):
-    # берём последнюю строку статистики: в промежуточных «Progress» числа форматируются с разделителем тысяч
-    gens = re.findall(r"(\d+) states generated, (\d+) distinct states found", log)
-    depth = re.search(r"depth of the complete state graph search is (\d+)", log)
-    gen = gens[-1] if gens else None
-    return {"states_generated": int(gen[0]) if gen else None,
-            "distinct_states": int(gen[1]) if gen else None,
-            "depth": int(depth.group(1)) if depth else None}
-
-
-def first_error_line(log, kind):
-    pats = [r"^Error:.*", r"^Unknown operator.*", r"^The operator.*", r"^File name.*",
-            r"^Cannot find source.*", r"^line \d+.*", r"^Was expecting.*", r".*Encountered.*"]
-    lines = [l.strip() for l in log.splitlines() if l.strip()]
-    for p in pats:
-        for i, l in enumerate(lines):
-            if re.match(p, l):
-                nxt = lines[i + 1] if l.startswith("line ") and i + 1 < len(lines) else ""
-                return (l + (" " + nxt if nxt else ""))[:200]
-    return (lines[-1] if lines else "")[:200]
-
-
-# ------------------------------------------------------------------ one task
+# ----------------------------------------------------------------- одна задача
 def run_task(task, args, jar, key):
     task = Path(task)
     cfgs = list(task.glob("*.cfg"))
     if len(cfgs) != 1 or not (task / "description.txt").exists():
-        sys.exit(f"{task}: need description.txt and exactly one .cfg in the task folder")
+        sys.exit(f"{task}: в папке задачи нужны description.txt и ровно один .cfg")
     mod = cfgs[0].stem
-    # gold/ намеренно не читается нигде в этом скрипте
+    # папка gold/ намеренно не читается нигде в этом скрипте
     description = (task / "description.txt").read_text(encoding="utf8").strip()
     cfg_content = cfgs[0].read_text(encoding="utf8").strip()
 
@@ -223,9 +142,12 @@ def run_task(task, args, jar, key):
     out = Path(args.out) / slug / task.name
     if out.exists() and any(out.iterdir()):
         if not args.force:
-            print(f"SKIP {task.name}: {out} already exists (use --force to overwrite)")
+            print(f"ПРОПУСК {task.name}: папка {out} уже существует (--force сохранит её копию в runs/.backup и начнёт заново)")
             return None
-        shutil.rmtree(out)
+        backup = Path(args.out) / ".backup" / slug / f"{task.name}_{datetime.now():%Y%m%d_%H%M%S}"
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(out), str(backup))
+        print(f"Старый прогон перенесён в {backup}")
     out.mkdir(parents=True)
     work = out / "work"
     work.mkdir()
@@ -236,7 +158,7 @@ def run_task(task, args, jar, key):
     t_sany = (PROMPTS / "2_sany_error.md").read_text(encoding="utf8")
     t_tlc = (PROMPTS / "3_tlc_error.md").read_text(encoding="utf8")
 
-    log(f"=== task={task.name} module={mod} model={args.model} max_iter={args.max_iter} ===")
+    log(f"=== задача={task.name} модуль={mod} модель={args.model} макс_итераций={args.max_iter} ===")
     summary = {"task": task.name, "module": mod, "model_requested": args.model,
                "base_url": args.base_url, "started": datetime.now().isoformat(timespec="seconds"),
                "sany_pass_iter": None, "tlc_pass_iter": None, "total_iterations": 0,
@@ -246,31 +168,33 @@ def run_task(task, args, jar, key):
     prompt = fill(t_generate, DESCRIPTION=description, CFG_CONTENT=cfg_content, MODULE_NAME=mod)
 
     for n in range(1, args.max_iter + 1):
-        log(f"--- iteration {n}: sending prompt ({len(prompt)} chars)")
+        log(f"--- итерация {n}: отправка промпта ({len(prompt)} симв.)")
         messages.append({"role": "user", "content": prompt})
         (out / f"prompt_{n}.md").write_text(prompt, encoding="utf8")
         try:
             data, elapsed = chat(messages, args.model, args.base_url, key, args.temperature, log)
         except Exception as e:
-            log(f"API FAILURE, aborting task: {e}")
+            log(f"Сбой API, задача прервана: {e}")
             summary["status"] = "api_error"
             break
         (out / f"api_{n}.json").write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf8")
         msg = data["choices"][0]["message"]
         reply = msg.get("content") or ""
         summary["model_returned"] = data.get("model")
-        log(f"response received in {elapsed:.1f}s, {len(reply)} chars, usage={data.get('usage')}")
+        if summary["model_returned"] is None:
+            log("API не вернул поле model: фактическая модель ответом не подтверждена")
+        log(f"ответ получен за {elapsed:.1f} с, {len(reply)} симв., usage={data.get('usage')}")
         (out / f"response_{n}.md").write_text(reply, encoding="utf8")
         messages.append({"role": "assistant", "content": reply})
         summary["total_iterations"] = n
 
         spec = extract_spec(reply)
         if spec is None:
-            log("no ```tla block found in the response")
+            log("в ответе нет блока ```tla")
             rows.append({"n": n, "sany": "fail", "tlc": "–", "type": "нет блока кода",
                          "what": "в ответе нет ```tla блока"})
             spec_text = reply
-            sany_log = "SANY was not run: the response did not contain a ```tla code block."
+            sany_log = MSG_NO_CODE_BLOCK
             (out / f"sany_{n}.log").write_text(sany_log, encoding="utf8")
             (out / f"spec_iter{n}.tla").write_text(spec_text, encoding="utf8")
             prompt = fill(t_sany, CURRENT_SPEC=spec_text, FULL_SANY_LOG=sany_log)
@@ -285,12 +209,12 @@ def run_task(task, args, jar, key):
                             work, sany_path, SANY_TIMEOUT)
         sany_log = sany_path.read_text(encoding="utf8", errors="replace")
         ok = sany_ok(sany_log)
-        log(f"SANY {'ok' if ok else 'FAIL'} (rc={rc}, {time.time() - t0:.1f}s)")
+        log(f"SANY {'ok' if ok else 'ОШИБКА'} (код={rc}, {time.time() - t0:.1f} с)")
         if not ok:
             etype = classify_sany(sany_log)
             rows.append({"n": n, "sany": "fail", "tlc": "–", "type": etype,
-                         "what": first_error_line(sany_log, "sany")})
-            log(f"SANY error type: {etype}")
+                         "what": first_error_line(sany_log)})
+            log(f"тип ошибки SANY: {etype}")
             prompt = fill(t_sany, CURRENT_SPEC=spec, FULL_SANY_LOG=sany_log)
             continue
         if summary["sany_pass_iter"] is None:
@@ -305,27 +229,26 @@ def run_task(task, args, jar, key):
         tlc_log = tlc_path.read_text(encoding="utf8", errors="replace")
         ok = (not timed_out) and tlc_ok(tlc_log)
         stats = tlc_stats(tlc_log)
-        log(f"TLC {'ok' if ok else 'timeout' if timed_out else 'FAIL'} "
-            f"(rc={rc}, {time.time() - t0:.1f}s) stats={stats}")
+        log(f"TLC {'ok' if ok else 'таймаут' if timed_out else 'ОШИБКА'} "
+            f"(код={rc}, {time.time() - t0:.1f} с) статистика={stats}")
         if ok:
             rows.append({"n": n, "sany": "ok", "tlc": "ok", "type": "–", "what": "–"})
             summary.update(tlc_pass_iter=n, status="passed", final_tlc=stats)
             break
         etype = classify_tlc(tlc_log, timed_out)
         rows.append({"n": n, "sany": "ok", "tlc": "timeout" if timed_out else "fail",
-                     "type": etype, "what": first_error_line(tlc_log, "tlc")})
-        log(f"TLC error type: {etype}")
+                     "type": etype, "what": first_error_line(tlc_log)})
+        log(f"тип ошибки TLC: {etype}")
         sent_log = tlc_log
         if timed_out:
             tail = "\n".join(tlc_log.splitlines()[-TIMEOUT_TAIL_LINES:])
-            sent_log = (f"[NOTE: TLC was stopped by the {TLC_TIMEOUT} s timeout. The log is truncated: "
-                        f"only the last {TIMEOUT_TAIL_LINES} lines are shown.]\n{tail}")
+            sent_log = MSG_TLC_TIMEOUT.format(timeout=TLC_TIMEOUT, lines=TIMEOUT_TAIL_LINES, tail=tail)
         prompt = fill(t_tlc, CURRENT_SPEC=spec, CFG_CONTENT=cfg_content, FULL_TLC_LOG=sent_log)
 
     summary["finished"] = datetime.now().isoformat(timespec="seconds")
     (out / "transcript.json").write_text(json.dumps(messages, ensure_ascii=False, indent=2), encoding="utf8")
     (out / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf8")
-    write_table(out, summary, rows)
+    write_results(out, summary, rows)
     if summary["status"] == "failed_max_iter":
         (out / "failure_analysis.md").write_text(
             f"# Разбор причин неудачи: {task.name}\n\n"
@@ -334,27 +257,9 @@ def run_task(task, args, jar, key):
             "- какие типы ошибок повторялись;\n- зацикливалась ли модель на одной ошибке;\n"
             "- почему не смогла исправить (синтаксис, непонимание семантики, конфигурация и т. д.).\n",
             encoding="utf8")
-    log(f"=== done: status={summary['status']} sany_pass_iter={summary['sany_pass_iter']} "
-        f"tlc_pass_iter={summary['tlc_pass_iter']} total={summary['total_iterations']} ===")
+    log(f"=== завершено: статус={summary['status']} SANY@{summary['sany_pass_iter']} "
+        f"TLC@{summary['tlc_pass_iter']} всего итераций={summary['total_iterations']} ===")
     return summary
-
-
-def write_table(out, summary, rows):
-    md = [f"# {summary['task']} ({summary['model_requested']})", "",
-          "| № | SANY | TLC | Тип ошибки | Что сломано (авто: первая строка ошибки из лога) |",
-          "|---|------|-----|------------|-----------------------------------------------|"]
-    for r in rows:
-        what = r["what"].replace("|", "\\|")
-        md.append(f"| {r['n']} | {r['sany']} | {r['tlc']} | {r['type']} | {what} |")
-    md += ["", f"- SANY прошёл на итерации: {summary['sany_pass_iter']}",
-           f"- TLC прошёл на итерации: {summary['tlc_pass_iter']}",
-           f"- Всего итераций: {summary['total_iterations']}",
-           f"- Финальный вывод TLC: {summary['final_tlc']}", ""]
-    (out / "results.md").write_text("\n".join(md), encoding="utf8")
-    with open(out / "results.csv", "w", newline="", encoding="utf8") as f:
-        w = csv.DictWriter(f, fieldnames=["n", "sany", "tlc", "type", "what"])
-        w.writeheader()
-        w.writerows(rows)
 
 
 def main():
@@ -366,7 +271,7 @@ def main():
     ap.add_argument("--max-iter", type=int, default=10)
     ap.add_argument("--temperature", type=float, default=None, help="по умолчанию не передаётся")
     ap.add_argument("--out", default=str(ROOT / "runs"))
-    ap.add_argument("--force", action="store_true", help="перезаписать существующий прогон")
+    ap.add_argument("--force", action="store_true", help="начать заново: старый прогон переносится в runs/.backup")
     args = ap.parse_args()
 
     tasks = list(args.tasks)
